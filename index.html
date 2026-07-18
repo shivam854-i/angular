@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="amazonApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books & more</title>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- AngularJS 1.8 Library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+    <!-- App Module & Controller -->
+    <script src="app.js"></script>
+</head>
+
+<body ng-controller="MainController">
+
+    <!-- ==========================================================================
+         Amazon Header Bar
+         ========================================================================== -->
+    <header class="amazon-header">
+        <div class="nav-main">
+            
+            <!-- Amazon Logo -->
+            <div class="nav-logo" ng-click="selectedCategory = 'All'; searchQuery = ''">
+                <div class="logo-text">amazon<span class="dot-com">.com</span></div>
+            </div>
+
+            <!-- Deliver To Location -->
+            <div class="nav-location">
+                <div class="location-icon">📍</div>
+                <div class="location-text">
+                    <span class="line-1">Deliver to</span>
+                    <span class="line-2">New York 10001</span>
+                </div>
+            </div>
+
+            <!-- Real-Time Interactive Search Bar -->
+            <div class="nav-search">
+                <select class="search-select" ng-model="selectedCategory">
+                    <option ng-repeat="cat in categories" value="{{cat}}">{{cat}}</option>
+                </select>
+                <input type="text" 
+                       class="search-input" 
+                       placeholder="Search Amazon products..." 
+                       ng-model="searchQuery">
+                <button class="search-btn" title="Search">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Account, Orders & Cart -->
+            <div class="nav-right">
+                
+                <div class="nav-item">
+                    <span class="line-1">Hello, Sign in</span>
+                    <span class="line-2">Account & Lists ▾</span>
+                </div>
+
+                <div class="nav-item">
+                    <span class="line-1">Returns</span>
+                    <span class="line-2">& Orders</span>
+                </div>
+
+                <!-- Shopping Cart Icon with Badge Counter -->
+                <div class="nav-cart-btn" ng-click="toggleCart()">
+                    <div class="cart-icon-wrapper">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                        <span class="cart-count">{{ getCartCount() }}</span>
+                    </div>
+                    <span class="cart-label">Cart</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sub-Header Menu Bar -->
+        <nav class="nav-sub">
+            <div class="subnav-all-btn">
+                <span>☰</span> All
+            </div>
+            <ul class="subnav-links">
+                <li ng-class="{active: selectedCategory === 'Deals'}" ng-click="setCategory('Deals')">Today's Deals</li>
+                <li ng-class="{active: selectedCategory === 'Electronics'}" ng-click="setCategory('Electronics')">Electronics</li>
+                <li ng-class="{active: selectedCategory === 'Gaming'}" ng-click="setCategory('Gaming')">Gaming</li>
+                <li ng-class="{active: selectedCategory === 'Home & Kitchen'}" ng-click="setCategory('Home & Kitchen')">Home & Kitchen</li>
+                <li ng-class="{active: selectedCategory === 'Fashion'}" ng-click="setCategory('Fashion')">Fashion</li>
+                <li ng-class="{active: selectedCategory === 'Books'}" ng-click="setCategory('Books')">Books</li>
+                <li ng-click="scrollToProducts()">Browse All Products</li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- ==========================================================================
+         Hero Banner Carousel
+         ========================================================================== -->
+    <section class="hero-carousel">
+        
+        <!-- Slides -->
+        <div class="carousel-slide" 
+             ng-repeat="slide in slides" 
+             ng-class="{'active-slide': $index === currentSlideIndex}"
+             ng-style="{'background': slide.bgGradient}">
+            
+            <div class="slide-content">
+                <span class="slide-badge" ng-style="{'color': slide.accentColor}">{{ slide.badge }}</span>
+                <h1 class="slide-title">{{ slide.title }}</h1>
+                <p class="slide-subtitle">{{ slide.subtitle }}</p>
+                <button class="slide-cta-btn" ng-click="scrollToProducts()">{{ slide.ctaText }} →</button>
+            </div>
+
+            <div class="slide-image-wrapper">
+                <img ng-src="{{ slide.image }}" alt="{{ slide.title }}">
+            </div>
+        </div>
+
+        <!-- Carousel Buttons -->
+        <button class="carousel-btn prev" ng-click="prevSlide()">❮</button>
+        <button class="carousel-btn next" ng-click="nextSlide()">❯</button>
+
+        <!-- Gradient Bottom Overlay -->
+        <div class="carousel-gradient-overlay"></div>
+    </section>
+
+    <!-- ==========================================================================
+         Main Content Container
+         ========================================================================== -->
+    <main class="main-container">
+        
+        <!-- Quad Category Highlight Cards (Amazon Homepage Signature) -->
+        <section class="quad-cards-grid">
+            <div class="quad-card" ng-repeat="card in categoryCards">
+                <h3>{{ card.title }}</h3>
+                <img class="quad-card-img" ng-src="{{ card.image }}" alt="{{ card.title }}">
+                <span class="quad-card-link" ng-click="setCategory(card.category); scrollToProducts()">{{ card.linkText }}</span>
+            </div>
+        </section>
+
+        <!-- Product Catalog Section -->
+        <section id="products-section">
+            
+            <!-- Filter Header -->
+            <div class="products-section-header">
+                <h2 class="section-title">
+                    <span ng-show="selectedCategory === 'All'">Featured Products</span>
+                    <span ng-show="selectedCategory !== 'All'">Category: {{ selectedCategory }}</span>
+                </h2>
+                
+                <!-- Category Filter Pills -->
+                <div class="category-pills">
+                    <button class="pill-btn" 
+                            ng-repeat="cat in categories" 
+                            ng-class="{active: selectedCategory === cat}"
+                            ng-click="setCategory(cat)">
+                        {{ cat }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Grid List with AngularJS Filter Directive -->
+            <div class="products-grid">
+                
+                <div class="product-card" ng-repeat="product in products | filter:productFilter">
+                    
+                    <!-- Deal / Bestseller Badge -->
+                    <span class="product-badge" ng-show="product.badge">{{ product.badge }}</span>
+
+                    <!-- Product Image -->
+                    <div class="product-img-box">
+                        <img ng-src="{{ product.image }}" alt="{{ product.title }}">
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="product-info">
+                        <span class="product-category">{{ product.category }}</span>
+                        <h3 class="product-title" title="{{ product.title }}">{{ product.title }}</h3>
+
+                        <!-- Rating Stars -->
+                        <div class="rating-box">
+                            <div class="stars-list">★★★★<span ng-show="product.rating >= 4.5">★</span><span ng-show="product.rating < 4.5">☆</span></div>
+                            <span class="review-count">({{ product.reviewCount | number }})</span>
+                        </div>
+
+                        <!-- Price Formatting with AngularJS Currency Filter -->
+                        <div class="price-box">
+                            <span class="current-price">
+                                <span class="currency-symbol">$</span>{{ product.price | number:2 }}
+                            </span>
+                            <span class="original-price" ng-show="product.originalPrice">${{ product.originalPrice | number:2 }}</span>
+                        </div>
+
+                        <!-- Prime Shipping Tag -->
+                        <div class="prime-tag" ng-show="product.isPrime">
+                            <span style="font-style: italic; font-weight: 900; color: #00a8e1;">prime</span>
+                            <span>{{ product.deliveryDate }}</span>
+                        </div>
+
+                        <!-- Add to Cart Action -->
+                        <button class="add-to-cart-btn" ng-click="addToCart(product)">
+                            🛒 Add to Cart
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Empty Search Results Message -->
+                <div class="no-results" ng-show="(products | filter:productFilter).length === 0">
+                    <h3>No products found</h3>
+                    <p>We couldn't find any products matching "{{ searchQuery }}" in category "{{ selectedCategory }}".</p>
+                    <button class="pill-btn" style="margin-top: 14px;" ng-click="searchQuery = ''; selectedCategory = 'All'">Reset Filters</button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================================================
+         Shopping Cart Slide-Over Drawer
+         ========================================================================== -->
+    <div class="cart-backdrop" ng-class="{open: isCartOpen}" ng-click="toggleCart()"></div>
+
+    <div class="cart-drawer" ng-class="{open: isCartOpen}">
+        <div class="cart-header">
+            <h2>Your Shopping Cart ({{ getCartCount() }})</h2>
+            <button class="close-cart-btn" ng-click="toggleCart()">✕</button>
+        </div>
+
+        <div class="cart-body">
+            
+            <!-- Cart Items List -->
+            <div class="cart-item" ng-repeat="item in cart">
+                <img class="cart-item-img" ng-src="{{ item.product.image }}" alt="{{ item.product.title }}">
+                
+                <div class="cart-item-details">
+                    <h4 class="cart-item-title">{{ item.product.title }}</h4>
+                    <div class="cart-item-price">${{ (item.product.price * item.quantity) | number:2 }}</div>
+                    
+                    <div class="cart-qty-controls">
+                        <button class="qty-btn" ng-click="updateQuantity(item, -1)">-</button>
+                        <span class="qty-val">{{ item.quantity }}</span>
+                        <button class="qty-btn" ng-click="updateQuantity(item, 1)">+</button>
+                        <span class="remove-link" ng-click="removeFromCart($index)">Delete</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty Cart Display -->
+            <div class="empty-cart-msg" ng-show="cart.length === 0">
+                <div style="font-size: 48px; margin-bottom: 10px;">🛒</div>
+                <p>Your Amazon Cart is empty.</p>
+                <p style="font-size: 13px; margin-top: 6px;">Add items to your cart to get started.</p>
+            </div>
+
+        </div>
+
+        <div class="cart-footer" ng-show="cart.length > 0">
+            <div class="subtotal-row">
+                <span>Subtotal:</span>
+                <span>${{ getCartSubtotal() | number:2 }}</span>
+            </div>
+            <button class="checkout-btn" ng-click="showToast('Proceeding to Amazon Checkout...', '')">
+                Proceed to Checkout ({{ getCartCount() }} items)
+            </button>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         Toast Notification Popup
+         ========================================================================== -->
+    <div class="toast-container" ng-class="{show: toast.show}">
+        <img class="toast-img" ng-src="{{ toast.image }}" ng-show="toast.image" alt="Product Image">
+        <span class="toast-msg">{{ toast.message }}</span>
+    </div>
+
+    <!-- ==========================================================================
+         Amazon Dark Footer
+         ========================================================================== -->
+    <footer class="amazon-footer">
+        <div class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+            Back to top
+        </div>
+
+        <div class="footer-links-container">
+            <div class="footer-col">
+                <h4>Get to Know Us</h4>
+                <ul>
+                    <li>Careers</li>
+                    <li>Blog</li>
+                    <li>About Amazon</li>
+                    <li>Investor Relations</li>
+                    <li>Amazon Devices</li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Make Money with Us</h4>
+                <ul>
+                    <li>Sell products on Amazon</li>
+                    <li>Sell on Amazon Business</li>
+                    <li>Sell apps on Amazon</li>
+                    <li>Become an Affiliate</li>
+                    <li>Advertise Your Products</li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Amazon Payment Products</h4>
+                <ul>
+                    <li>Amazon Business Card</li>
+                    <li>Shop with Points</li>
+                    <li>Reload Your Balance</li>
+                    <li>Amazon Currency Converter</li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Let Us Help You</h4>
+                <ul>
+                    <li>Amazon and COVID-19</li>
+                    <li>Your Account</li>
+                    <li>Your Orders</li>
+                    <li>Shipping Rates & Policies</li>
+                    <li>Help & Customer Service</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026, Amazon.com Clone Built with AngularJS 1.x. For educational purposes.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

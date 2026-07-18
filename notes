@@ -1,0 +1,14 @@
+it is a predefined javascript framework
+
+framework are resuable and predefined structure of code
+
+it follows mvc(model view controller) architecture
+
+model = variable or data
+view = ui,it displays html content
+controller = logic of the code
+
+ng-app = directive
+
+ng-app()
+formes and validation
